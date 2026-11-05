@@ -1,4 +1,7 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+
+import { Observable } from 'rxjs';
+
 import {
   collection,
   addDoc,
@@ -6,11 +9,10 @@ import {
   orderBy,
   limit,
   onSnapshot,
-  serverTimestamp,
-  type DocumentReference,
-  type Timestamp
+  serverTimestamp
 } from 'firebase/firestore';
-import { Observable } from 'rxjs';
+
+import type { Timestamp } from 'firebase/firestore';
 
 import { FirebaseService } from './firebase';
 
@@ -29,9 +31,16 @@ export class ChatService {
 
   private firebase = inject(FirebaseService);
 
-  async sendMessage(text: string, nickname: string): Promise<DocumentReference> {
+  constructor() {}
+
+  // Enviar mensaje
+  async sendMessage(
+    text: string,
+    nickname: string
+  ) {
 
     const uid = this.firebase.getCurrentUid();
+
     const cleanText = text.trim();
     const cleanNickname = nickname.trim();
 
@@ -43,7 +52,10 @@ export class ChatService {
       throw new Error('Nombre o mensaje vacío');
     }
 
-    if (cleanText.length > 1000 || cleanNickname.length > 30) {
+    if (
+      cleanText.length > 1000 ||
+      cleanNickname.length > 30
+    ) {
       throw new Error('Texto demasiado largo');
     }
 
@@ -52,33 +64,57 @@ export class ChatService {
       {
         text: cleanText,
         nickname: cleanNickname,
-        uid,
+        uid: uid,
         createdAt: serverTimestamp()
       }
     );
   }
 
+  // Obtener mensajes en tiempo real
   getMessages(): Observable<Message[]> {
 
     return new Observable<Message[]>(observer => {
 
+      const messagesRef = collection(
+        this.firebase.db,
+        'messages'
+      );
+
       const q = query(
-        collection(this.firebase.db, 'messages'),
+        messagesRef,
         orderBy('createdAt', 'desc'),
         limit(50)
       );
 
       const unsubscribe = onSnapshot(
+
         q,
+
         snapshot => {
-          const messages = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          } as Message));
+
+          const messages: Message[] =
+            snapshot.docs.map(doc => ({
+
+              id: doc.id,
+              ...doc.data()
+
+            } as Message));
 
           observer.next(messages.reverse());
+
         },
-        error => observer.error(error)
+
+        error => {
+
+          console.error(
+            'Error Firestore:',
+            error
+          );
+
+          observer.error(error);
+
+        }
+
       );
 
       return () => unsubscribe();
