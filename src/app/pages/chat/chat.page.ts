@@ -15,8 +15,9 @@ import {
 } from '@ionic/angular';
 import type { Subscription } from 'rxjs';
 
-import type { ChatService, Message } from '../../services/chat';
-import type { FirebaseService } from '../../services/firebase';
+import { ChatService } from '../../services/chat';
+import type { Message } from '../../services/chat';
+import { FirebaseService } from '../../services/firebase';
 
 @Component({
   selector: 'app-chat',
@@ -53,7 +54,7 @@ export class ChatPage implements OnInit, OnDestroy {
   public firebase = inject<FirebaseService>(FirebaseService);
   private chat = inject<ChatService>(ChatService);
 
-  async ngOnInit() {
+  async ngOnInit(): Promise<void> {
 
     this.nickname = localStorage.getItem('chatNickname') || '';
 
@@ -79,7 +80,7 @@ export class ChatPage implements OnInit, OnDestroy {
     }
   }
 
-  async send() {
+  async send(): Promise<void> {
 
     if (!this.connected || this.sending) return;
 
@@ -113,7 +114,7 @@ export class ChatPage implements OnInit, OnDestroy {
     return msg.uid === this.firebase.getCurrentUid();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscription?.unsubscribe();
   }
 }

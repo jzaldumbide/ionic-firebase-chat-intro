@@ -6,12 +6,15 @@
 
 <ion-content class="ion-padding">
 
-  <div *ngIf="!connected" class="connection">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Conectando con Firebase...</p>
-  </div>
+  @if (!connected) {
+    <div class="connection">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Conectando con Firebase...</p>
+    </div>
+  }
 
-  <div *ngIf="connected">
+  @if (connected) {
+    <div>
 
     <ion-item>
       <ion-input
@@ -27,36 +30,42 @@
 
     <div class="chat-container">
 
-      <div
-        *ngFor="let msg of messages"
-        class="message"
-        [class.mine]="isMine(msg)">
+      @for (msg of messages; track msg) {
+        <div
+          class="message"
+          [class.mine]="isMine(msg)">
 
-        <div class="nickname">
-          {{ msg.nickname }}
+          <div class="nickname">
+            {{ msg.nickname }}
+          </div>
+
+          <div class="message-text">
+            {{ msg.text }}
+          </div>
+
+          @if (msg.createdAt) {
+            <div class="time">
+              {{ msg.createdAt.toDate() | date:'shortTime' }}
+            </div>
+          }
+
         </div>
+      }
 
-        <div class="message-text">
-          {{ msg.text }}
-        </div>
-
-        <div class="time" *ngIf="msg.createdAt">
-          {{ msg.createdAt.toDate() | date:'shortTime' }}
-        </div>
-
-      </div>
-
-      <p *ngIf="messages.length === 0">
-        Todavía no hay mensajes.
-      </p>
+      @if (messages.length === 0) {
+        <p>Todavía no hay mensajes.</p>
+      }
 
     </div>
 
-  </div>
+    </div>
+  }
 
-  <ion-text color="danger" *ngIf="error">
-    <p>{{ error }}</p>
-  </ion-text>
+  @if (error) {
+    <ion-text color="danger">
+      <p>{{ error }}</p>
+    </ion-text>
+  }
 
 </ion-content>
 
